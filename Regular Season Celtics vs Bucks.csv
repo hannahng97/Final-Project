@@ -1,9 +1,9 @@
-REGULAR SEASON,CELTICS,BUCKS
-Win-Lose,55-27,44-38
-Rank,2,7
-Wins,67.1,53.7
-Losses,32.9,46.3
-Streak,1 W,1 L
-Last 10,6-4,6-4
-Home,27-14,25-16
-Away,28-13,19-22
+CELTICS,REGULAR SEASON,BUCKS
+55-27,Win-Lose,44-38
+2,Rank,7
+67.1,Wins,53.7
+32.9,Losses,46.3
+1 W,Streak,1 L
+4-Jun,Last 10,4-Jun
+27-14,Home,25-16
+28-13,Away,19-22
