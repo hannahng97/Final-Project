@@ -20,4 +20,4 @@ tweets.df <- twListToDF(none)
 write.csv(tweets.df, file = "final1.csv")
 
 tweets.df2 <- twListToDF(hashtag)
-write.csv(tweets.df, file = "final2.csv")
+write.csv(tweets.df2, file = "final2.csv")
