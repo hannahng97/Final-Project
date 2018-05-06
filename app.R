@@ -35,7 +35,7 @@ final <- read_csv("final1.csv")
 
 # ui
 ui <- dashboardPage(
-  dashboardHeader(title = "NBA: Celtics Vs. Bucks Game 6"),
+  dashboardHeader(title = "Celtics Game 6"),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Celtics: Home vs Away", tabName = "barplot"),
