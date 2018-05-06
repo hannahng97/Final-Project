@@ -299,24 +299,122 @@ server <- function(input, output) {
   
   output$plot4 <- renderPlot({
     
+    ## Jaylen Brown
+    getjb <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Jaylen Brown") %>% which()
+      date[index, column]
+    }
+    
+    # Field Goals
+    jbfg1 <- getjb(oct18, 5)
+    jbfg2 <- getjb(oct26, 5)
+    jbfg3 <- getjb(dec4, 5)
+    jbfg4 <- getjb(apr3, 5)
+    jbfg5 <- getjb(apr15, 5)
+    jbfg6 <- getjb(apr17, 5)
+    jbfg7 <- getjb(apr20, 5)
+    jbfg8 <- getjb(apr22, 5)
+    jbfg9 <- getjb(apr24, 5)
+    
+    jbfg_average <- mean(c(jbfg1, jbfg2, jbfg3, jbfg4, jbfg5, jbfg6, jbfg7, jbfg8, jbfg9), na.rm = TRUE)
+    
+    ## Jayson Tatum
+    getjt <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Jayson Tatum") %>% which()
+      date[index, column]
+    }
+    
+    # Field Goals
+    jtfg1 <- getjt(oct18, 5)
+    jtfg2 <- getjt(oct26, 5)
+    jtfg3 <- getjt(dec4, 5)
+    jtfg4 <- getjt(apr3, 5)
+    jtfg5 <- getjt(apr15, 5)
+    jtfg6 <- getjt(apr17, 5)
+    jtfg7 <- getjt(apr20, 5)
+    jtfg8 <- getjt(apr22, 5)
+    jtfg9 <- getjt(apr24, 5)
+    
+    jtfg_average <- mean(c(jtfg1, jtfg2, jtfg3, jtfg4, jtfg5, jtfg6, jtfg7, jtfg8, jtfg9), na.rm = TRUE)
+    
+    ## Al Horford
+    getal <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Al Horford") %>% which()
+      date[index, column]
+    }
+    
+    # Field Goals
+    alfg1 <- getal(oct18, 5)
+    alfg2 <- getal(oct26, 5)
+    alfg3 <- getal(dec4, 5)
+    alfg4 <- getal(apr3, 5)
+    alfg5 <- getal(apr15, 5)
+    alfg6 <- getal(apr17, 5)
+    alfg7 <- getal(apr20, 5)
+    alfg8 <- getal(apr22, 5)
+    alfg9 <- getal(apr24, 5)
+    
+    alfg_average <- mean(c(alfg1, alfg2, alfg3, alfg4, alfg5, alfg6, alfg7, alfg8, alfg9), na.rm = TRUE)
+    
+    ## Marcus Smart
+    getms <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Marcus Smart") %>% which()
+      date[index, column]
+    }
+    
+    # Field Goals
+    msfg1 <- getms(oct18, 5)
+    msfg2 <- getms(oct26, 5)
+    msfg3 <- getms(dec4, 5)
+    msfg4 <- getms(apr3, 5)
+    msfg5 <- getms(apr15, 5)
+    msfg6 <- getms(apr17, 5)
+    msfg7 <- getms(apr20, 5)
+    msfg8 <- getms(apr22, 5)
+    msfg9 <- getms(apr24, 5)
+    
+    msfg_average <- mean(c(msfg1, msfg2, msfg3, msfg4, msfg5, msfg6, msfg7, msfg8, msfg9), na.rm = TRUE)
+    
+    ## Terry Rozier
+    gettr <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Terry Rozier") %>% which()
+      date[index, column]
+    }
+    
+    # Field Goals
+    trfg1 <- gettr(oct18, 5)
+    trfg2 <- gettr(oct26, 5)
+    trfg3 <- gettr(dec4, 5)
+    trfg4 <- gettr(apr3, 5)
+    trfg5 <- gettr(apr15, 5)
+    trfg6 <- gettr(apr17, 5)
+    trfg7 <- gettr(apr20, 5)
+    trfg8 <- gettr(apr22, 5)
+    trfg9 <- gettr(apr24, 5)
+    
+    trfg_average <- mean(c(trfg1, trfg2, trfg3, trfg4, trfg5, trfg6, trfg7, trfg8, trfg9), na.rm = TRUE)
+    
+    ## Marcus Morris
+    getmm <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Marcus Morris") %>% which()
+      date[index, column]
+    }
+    
+    # Field Goals
+    mmfg1 <- getmm(oct18, 5)
+    mmfg2 <- getmm(oct26, 5)
+    mmfg3 <- getmm(dec4, 5)
+    mmfg4 <- getmm(apr3, 5)
+    mmfg5 <- getmm(apr15, 5)
+    mmfg6 <- getmm(apr17, 5)
+    mmfg7 <- getmm(apr20, 5)
+    mmfg8 <- getmm(apr22, 5)
+    mmfg9 <- getmm(apr24, 5)
+    
+    mmfg_average <- mean(c(mmfg1, mmfg2, mmfg3, mmfg4, mmfg5, mmfg6, mmfg7, mmfg8, mmfg9), na.rm = TRUE)
+    
+    
     if (input$slot_players1 == "Jaylen Brown") {
-      getjb <- function(date, column){
-        index <- date$PLAYER %>% `==` ("Jaylen Brown") %>% which()
-        date[index, column]
-      }
-      
-      # Field Goals
-      jbfg1 <- getjb(oct18, 5)
-      jbfg2 <- getjb(oct26, 5)
-      jbfg3 <- getjb(dec4, 5)
-      jbfg4 <- getjb(apr3, 5)
-      jbfg5 <- getjb(apr15, 5)
-      jbfg6 <- getjb(apr17, 5)
-      jbfg7 <- getjb(apr20, 5)
-      jbfg8 <- getjb(apr22, 5)
-      jbfg9 <- getjb(apr24, 5)
-      
-      jbfg_average <- mean(c(jbfg1, jbfg2, jbfg3, jbfg4, jbfg5, jbfg6, jbfg7, jbfg8, jbfg9), na.rm = TRUE)
       
       p <- ggplot(jb, aes(jb$MIN, y = value)) + 
         geom_line(aes(y = jb$FG., col = "Real Time")) + 
@@ -328,25 +426,8 @@ server <- function(input, output) {
     }
     
     if (input$slot_players1 == "Jayson Tatum") {
-      getjt <- function(date, column){
-        index <- date$PLAYER %>% `==` ("Jayson Tatum") %>% which()
-        date[index, column]
-      }
-      
-      # Field Goals
-      jtfg1 <- getjt(oct18, 5)
-      jtfg2 <- getjt(oct26, 5)
-      jtfg3 <- getjt(dec4, 5)
-      jtfg4 <- getjt(apr3, 5)
-      jtfg5 <- getjt(apr15, 5)
-      jtfg6 <- getjt(apr17, 5)
-      jtfg7 <- getjt(apr20, 5)
-      jtfg8 <- getjt(apr22, 5)
-      jtfg9 <- getjt(apr24, 5)
-      
-      jtfg_average <- mean(c(jtfg1, jtfg2, jtfg3, jtfg4, jtfg5, jtfg6, jtfg7, jtfg8, jtfg9), na.rm = TRUE)
-      
-      p <- ggplot(jt, aes(jt$MIN, y = value)) + 
+
+            p <- ggplot(jt, aes(jt$MIN, y = value)) + 
         geom_line(aes(y = jt$FG., col = "Real Time")) + 
         geom_line(aes(y = jtfg_average, col = "Historical")) +
         labs(title = "Jayson Tatum Field Goals Comparison",
@@ -356,23 +437,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players1 == "Al Horford") {
-      getal <- function(date, column){
-        index <- date$PLAYER %>% `==` ("Al Horford") %>% which()
-        date[index, column]
-      }
-      
-      # Field Goals
-      alfg1 <- getal(oct18, 5)
-      alfg2 <- getal(oct26, 5)
-      alfg3 <- getal(dec4, 5)
-      alfg4 <- getal(apr3, 5)
-      alfg5 <- getal(apr15, 5)
-      alfg6 <- getal(apr17, 5)
-      alfg7 <- getal(apr20, 5)
-      alfg8 <- getal(apr22, 5)
-      alfg9 <- getal(apr24, 5)
-      
-      alfg_average <- mean(c(alfg1, alfg2, alfg3, alfg4, alfg5, alfg6, alfg7, alfg8, alfg9), na.rm = TRUE)
       
       p <- ggplot(al, aes(al$MIN, y = value)) + 
         geom_line(aes(y = al$FG., col = "Real Time")) + 
@@ -384,23 +448,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players1 == "Marcus Smart") {
-      getms <- function(date, column){
-        index <- date$PLAYER %>% `==` ("Marcus Smart") %>% which()
-        date[index, column]
-      }
-      
-      # Field Goals
-      msfg1 <- getms(oct18, 5)
-      msfg2 <- getms(oct26, 5)
-      msfg3 <- getms(dec4, 5)
-      msfg4 <- getms(apr3, 5)
-      msfg5 <- getms(apr15, 5)
-      msfg6 <- getms(apr17, 5)
-      msfg7 <- getms(apr20, 5)
-      msfg8 <- getms(apr22, 5)
-      msfg9 <- getms(apr24, 5)
-      
-      msfg_average <- mean(c(msfg1, msfg2, msfg3, msfg4, msfg5, msfg6, msfg7, msfg8, msfg9), na.rm = TRUE)
       
       p <- ggplot(ms, aes(ms$MIN, y = value)) + 
         geom_line(aes(y = ms$FG., col = "Real Time")) + 
@@ -412,23 +459,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players1 == "Terry Rozier") {
-      gettr <- function(date, column){
-        index <- date$PLAYER %>% `==` ("Terry Rozier") %>% which()
-        date[index, column]
-      }
-      
-      # Field Goals
-      trfg1 <- gettr(oct18, 5)
-      trfg2 <- gettr(oct26, 5)
-      trfg3 <- gettr(dec4, 5)
-      trfg4 <- gettr(apr3, 5)
-      trfg5 <- gettr(apr15, 5)
-      trfg6 <- gettr(apr17, 5)
-      trfg7 <- gettr(apr20, 5)
-      trfg8 <- gettr(apr22, 5)
-      trfg9 <- gettr(apr24, 5)
-      
-      trfg_average <- mean(c(trfg1, trfg2, trfg3, trfg4, trfg5, trfg6, trfg7, trfg8, trfg9), na.rm = TRUE)
       
       p <- ggplot(tr, aes(tr$MIN, y = value)) + 
         geom_line(aes(y = tr$FG., col = "Real Time")) + 
@@ -440,23 +470,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players1 == "Marcus Morris") {
-      getmm <- function(date, column){
-        index <- date$PLAYER %>% `==` ("Marcus Morris") %>% which()
-        date[index, column]
-      }
-      
-      # Field Goals
-      mmfg1 <- getmm(oct18, 5)
-      mmfg2 <- getmm(oct26, 5)
-      mmfg3 <- getmm(dec4, 5)
-      mmfg4 <- getmm(apr3, 5)
-      mmfg5 <- getmm(apr15, 5)
-      mmfg6 <- getmm(apr17, 5)
-      mmfg7 <- getmm(apr20, 5)
-      mmfg8 <- getmm(apr22, 5)
-      mmfg9 <- getmm(apr24, 5)
-      
-      mmfg_average <- mean(c(mmfg1, mmfg2, mmfg3, mmfg4, mmfg5, mmfg6, mmfg7, mmfg8, mmfg9), na.rm = TRUE)
       
       p <- ggplot(mm, aes(mm$MIN, y = value)) + 
         geom_line(aes(y = mm$FG., col = "Real Time")) + 
@@ -499,18 +512,117 @@ server <- function(input, output) {
   
   output$plot5 <- renderPlot({
     
+    ## Jaylen Brown
+    getjb <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Jaylen Brown") %>% which()
+      date[index, column]
+    }
+    
+    jbp1 <- getjb(oct18, 8)
+    jbp2 <- getjb(oct26, 8)
+    jbp3 <- getjb(dec4, 8)
+    jbp4 <- getjb(apr3, 8)
+    jbp5 <- getjb(apr15, 8)
+    jbp6 <- getjb(apr17, 8)
+    jbp7 <- getjb(apr20, 8)
+    jbp8 <- getjb(apr22, 8)
+    jbp9 <- getjb(apr24, 8)
+    
+    jbp_average <- mean(c(jbp1, jbp2, jbp3, jbp4, jbp5, jbp6, jbp7, jbp8, jbp9), na.rm = TRUE)
+    
+    ## Jayson Tatum
+    getjt <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Jayson Tatum") %>% which()
+      date[index, column]
+    }
+    
+    jtp1 <- getjt(oct18, 8)
+    jtp2 <- getjt(oct26, 8)
+    jtp3 <- getjt(dec4, 8)
+    jtp4 <- getjt(apr3, 8)
+    jtp5 <- getjt(apr15, 8)
+    jtp6 <- getjt(apr17, 8)
+    jtp7 <- getjt(apr20, 8)
+    jtp8 <- getjt(apr22, 8)
+    jtp9 <- getjt(apr24, 8)
+    
+    jtp_average <- mean(c(jtp1, jtp2, jtp3, jtp4, jtp5, jtp6, jtp7, jtp8, jtp9), na.rm = TRUE)
+    
+    
+    ## Al Horford
+    getal <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Al Horford") %>% which()
+      date[index, column]
+    }
+    
+    alp1 <- getal(oct18, 8)
+    alp2 <- getal(oct26, 8)
+    alp3 <- getal(dec4, 8)
+    alp4 <- getal(apr3, 8)
+    alp5 <- getal(apr15, 8)
+    alp6 <- getal(apr17, 8)
+    alp7 <- getal(apr20, 8)
+    alp8 <- getal(apr22, 8)
+    alp9 <- getal(apr24, 8)
+    
+    alp_average <- mean(c(alp1, alp2, alp3, alp4, alp5, alp6, alp7, alp8, alp9), na.rm = TRUE)
+    
+    ## Marcus Smart
+    getms <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Marcus Smart") %>% which()
+      date[index, column]
+    }
+    
+    msp1 <- getms(oct18, 8)
+    msp2 <- getms(oct26, 8)
+    msp3 <- getms(dec4, 8)
+    msp4 <- getms(apr3, 8)
+    msp5 <- getms(apr15, 8)
+    msp6 <- getms(apr17, 8)
+    msp7 <- getms(apr20, 8)
+    msp8 <- getms(apr22, 8)
+    msp9 <- getms(apr24, 8)
+    
+    msp_average <- mean(c(msp1, msp2, msp3, msp4, msp5, msp6, msp7, msp8, msp9), na.rm = TRUE)
+    
+    ## Terry Rozier
+    gettr <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Terry Rozier") %>% which()
+      date[index, column]
+    }
+    
+    trp1 <- gettr(oct18, 8)
+    trp2 <- gettr(oct26, 8)
+    trp3 <- gettr(dec4, 8)
+    trp4 <- gettr(apr3, 8)
+    trp5 <- gettr(apr15, 8)
+    trp6 <- gettr(apr17, 8)
+    trp7 <- gettr(apr20, 8)
+    trp8 <- gettr(apr22, 8)
+    trp9 <- gettr(apr24, 8)
+    
+    trp_average <- mean(c(trp1, trp2, trp3, trp4, trp5, trp6, trp7, trp8, trp9), na.rm = TRUE)
+    
+    ## Marcus Morris
+    getmm <- function(date, column){
+      index <- date$PLAYER %>% `==` ("Marcus Morris") %>% which()
+      date[index, column]
+    }
+    
+    mmp1 <- getmm(oct18, 8)
+    mmp2 <- getmm(oct26, 8)
+    mmp3 <- getmm(dec4, 8)
+    mmp4 <- getmm(apr3, 8)
+    mmp5 <- getmm(apr15, 8)
+    mmp6 <- getmm(apr17, 8)
+    mmp7 <- getmm(apr20, 8)
+    mmp8 <- getmm(apr22, 8)
+    mmp9 <- getmm(apr24, 8)
+    
+    mmp_average <- mean(c(mmp1, mmp2, mmp3, mmp4, mmp5, mmp6, mmp7, mmp8, mmp9), na.rm = TRUE)
+    
+    
     if (input$slot_players2 == "Jaylen Brown") {
-      jbp1 <- getjb(oct18, 8)
-      jbp2 <- getjb(oct26, 8)
-      jbp3 <- getjb(dec4, 8)
-      jbp4 <- getjb(apr3, 8)
-      jbp5 <- getjb(apr15, 8)
-      jbp6 <- getjb(apr17, 8)
-      jbp7 <- getjb(apr20, 8)
-      jbp8 <- getjb(apr22, 8)
-      jbp9 <- getjb(apr24, 8)
-      
-      jbp_average <- mean(c(jbp1, jbp2, jbp3, jbp4, jbp5, jbp6, jbp7, jbp8, jbp9), na.rm = TRUE)
       
       p <- ggplot(jb, aes(jb$MIN, y = value)) + 
         geom_line(aes(y = jb$X3P., col = "Real Time")) + 
@@ -522,17 +634,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players2 == "Jayson Tatum") {
-      jtp1 <- getjt(oct18, 8)
-      jtp2 <- getjt(oct26, 8)
-      jtp3 <- getjt(dec4, 8)
-      jtp4 <- getjt(apr3, 8)
-      jtp5 <- getjt(apr15, 8)
-      jtp6 <- getjt(apr17, 8)
-      jtp7 <- getjt(apr20, 8)
-      jtp8 <- getjt(apr22, 8)
-      jtp9 <- getjt(apr24, 8)
-      
-      jtp_average <- mean(c(jtp1, jtp2, jtp3, jtp4, jtp5, jtp6, jtp7, jtp8, jtp9), na.rm = TRUE)
       
       p <- ggplot(jt, aes(jt$MIN, y = value)) + 
         geom_line(aes(y = jt$X3P., col = "Real Time")) + 
@@ -544,17 +645,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players2 == "Al Horford") {
-      alp1 <- getal(oct18, 8)
-      alp2 <- getal(oct26, 8)
-      alp3 <- getal(dec4, 8)
-      alp4 <- getal(apr3, 8)
-      alp5 <- getal(apr15, 8)
-      alp6 <- getal(apr17, 8)
-      alp7 <- getal(apr20, 8)
-      alp8 <- getal(apr22, 8)
-      alp9 <- getal(apr24, 8)
-      
-      alp_average <- mean(c(alp1, alp2, alp3, alp4, alp5, alp6, alp7, alp8, alp9), na.rm = TRUE)
       
       p <- ggplot(al, aes(al$MIN, y = value)) + 
         geom_line(aes(y = al$X3P., col = "Real Time")) + 
@@ -566,17 +656,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players2 == "Marcus Smart") {
-      msp1 <- getms(oct18, 8)
-      msp2 <- getms(oct26, 8)
-      msp3 <- getms(dec4, 8)
-      msp4 <- getms(apr3, 8)
-      msp5 <- getms(apr15, 8)
-      msp6 <- getms(apr17, 8)
-      msp7 <- getms(apr20, 8)
-      msp8 <- getms(apr22, 8)
-      msp9 <- getms(apr24, 8)
-      
-      msp_average <- mean(c(msp1, msp2, msp3, msp4, msp5, msp6, msp7, msp8, msp9), na.rm = TRUE)
       
       p <- ggplot(ms, aes(ms$MIN, y = value)) + 
         geom_line(aes(y = ms$X3P., col = "Real Time")) + 
@@ -588,17 +667,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players2 == "Terry Rozier") {
-      trp1 <- gettr(oct18, 8)
-      trp2 <- gettr(oct26, 8)
-      trp3 <- gettr(dec4, 8)
-      trp4 <- gettr(apr3, 8)
-      trp5 <- gettr(apr15, 8)
-      trp6 <- gettr(apr17, 8)
-      trp7 <- gettr(apr20, 8)
-      trp8 <- gettr(apr22, 8)
-      trp9 <- gettr(apr24, 8)
-      
-      trp_average <- mean(c(trp1, trp2, trp3, trp4, trp5, trp6, trp7, trp8, trp9), na.rm = TRUE)
       
       p <- ggplot(tr, aes(tr$MIN, y = value)) + 
         geom_line(aes(y = tr$X3P., col = "Real Time")) + 
@@ -610,17 +678,6 @@ server <- function(input, output) {
     }
     
     if (input$slot_players2 == "Marcus Morris") {
-      mmp1 <- getmm(oct18, 8)
-      mmp2 <- getmm(oct26, 8)
-      mmp3 <- getmm(dec4, 8)
-      mmp4 <- getmm(apr3, 8)
-      mmp5 <- getmm(apr15, 8)
-      mmp6 <- getmm(apr17, 8)
-      mmp7 <- getmm(apr20, 8)
-      mmp8 <- getmm(apr22, 8)
-      mmp9 <- getmm(apr24, 8)
-      
-      mmp_average <- mean(c(mmp1, mmp2, mmp3, mmp4, mmp5, mmp6, mmp7, mmp8, mmp9), na.rm = TRUE)
       
       p <- ggplot(mm, aes(mm$MIN, y = value)) + 
         geom_line(aes(y = mm$X3P., col = "Real Time")) + 
@@ -632,6 +689,11 @@ server <- function(input, output) {
     }
     
     if (input$slot_players2 == "Kyrie Irving") {
+      getk <- function(date, column){
+        index <- date$PLAYER %>% `==` ("Kyrie Irving") %>% which()
+        date[index, column]
+      }
+      
       kp1 <- getk(oct18, 8)
       kp2 <- getk(oct26, 8)
       kp3 <- getk(dec4, 8)

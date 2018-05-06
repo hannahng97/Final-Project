@@ -1,0 +1,13 @@
+name: Final-Project
+title: Final-Project
+username:
+account: hnnguyen
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 338253
+bundleId: 1359134
+url: https://hnnguyen.shinyapps.io/Final-Project/
+when: 1525647850.66501
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Document.pdf|Document.Rmd|Final Project Twitter API.R|Raw Code.R|README.md
