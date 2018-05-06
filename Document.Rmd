@@ -1,0 +1,782 @@
+---
+title: 'Final Project: NBA Playoffs'
+author: "Han Nguyen"
+date: "May 5, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(tidytext)
+library(wordcloud)
+library(reshape2)
+library(knitr)
+```
+
+# Project Summary
+This project aims to analyze real time data of the National Basketball Association in order to predict end results of a basketball game. In this project, I sit through Game 6 of the Boston Celtics vs. Milwaukee Bucks Playoffs season and gather data every two minutes to predict end results of the game as time passes on. We will look into how each team has ranked throughout the regular 2017-2018 season, player lineups and injuries, the four factors that help win a game, and real time tweets during the game. I focus more on data of the Boston Celtics in this project.
+
+## Introduction to the Celtics
+The Boston Celtics have been a highly ranked team for many years, especially during the era of the Big Three: Paul Pierce, Ray Allen, Kevin Garnett. They won a championship in 2008, and have yet to win one. After the big three got traded, the Celtics have been trying to rebuild their team with the new coaching of Brad Stevens. This year, we added a top player to the roster, Kyrie Irving, which gave the Celtics some hope of going far in the Playoffs this year, until he got injured, which we will discuss later. 
+
+## Four Factors
+The "Four Factors of Basketball Success" are Shooting(Field Goals and 3 Pointers), Turnovers, Rebounds, and Free Throws. In this project, we focus more on these four factors when taking account of predicting results and analysis. 
+
+## Data
+The data used in this project were from the NBA website, and Twitter. The Twitter data was collected during the game (halftime, after 3rd quarter, and final) and saved in files. The R code for retrieving this data is also in the project folder titled, Final Project Twitter API. The data from the NBA website includes box scores of previous Celtics vs. Bucks games in the season, and Player Statistics during Game 6. 
+
+\newpage
+# Celtics vs Bucks Regular Season Stats
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+regular <- read.csv('Regular Season Celtics vs Bucks.csv')
+
+kable(regular, caption = "Regular Season Stats", col.names = c("CELTICS", "REGULAR SEASON", "BUCKS"))
+```
+
+We see that the Celtics should have a better advantage in the playoffs against the Bucks because of their already high ranking during the season. The Celtics have higher statistics overall, which means they should be more likely to win the playoffs against the Bucks, which we will analyze with the real time data.
+
+\newpage
+# Home vs Away Games
+In general, teams have a better advantage when playing in their home arena because of the "motivation" of the fans cheering their own team on. This is seen in these bar plots for the Celtics vs Bucks games throughout the season.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+barplot(c(4, 1),
+        names.arg = c("Home", "Away"),
+        main = "Home vs Away Wins",
+        xlab = "Location",
+        ylab = "Number of Wins",
+        col = "palegreen1")
+```
+It is seen that the Celtics clearly win most of their home games.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+barplot(c(1, 3),
+        names.arg = c("Home", "Away"),
+        main = "Home vs Away Losses",
+        xlab = "Location",
+        ylab = "Number of Losses",
+        col = "palegreen1")
+```
+And it is seen that they lose most of their away games vs the Bucks.
+
+With this information, one can predict before the game starts that the Celtics will not likely win game 6 of the playoffs, because game 6 will be an away game for the Celtics.
+
+\newpage
+# Real Time Point Differences
+This plot shows the real time number of points each time has gotten every 2 minutes of the game. Obviously, the closer towards the end of the game, the easier to predict who will win the game or not. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+game6 <- read.csv('Playoff6 Real Time.csv')
+
+ggplot(game6, aes(game6$MIN, y = value)) + 
+  geom_line(aes(y = game6$PTS, col = "Celtics")) + 
+  geom_line(aes(y = game6$BUCKS, col = "Bucks")) +
+  scale_colour_manual("", 
+                      values = c("Celtics"="green", "Bucks"="brown")) +
+  labs(title = "Point Difference",
+       y = "Points",
+       x = "Minutes")
+```
+
+For the first quarter of the game, and into the second quarter, the Celtics were always in the lead. At this point, one can say that the Celtics may win the game because they are already holding the lead, but of course it is too early to tell since anything can happen in the remaining quarters. By half time, the Bucks caught up with the Celtics, but the scores were still close. So the game can end with a win or lose for the Celtics. As we ended the 3rd quarter, the Bucks continued to hold their lead, and it was likely to see that the Celtics will lose the game, since the Bucks were in the lead for so long already. There were times when both teams were close in points to each other, but with the Bucks in the lead for the majority of the game already, it was clear that the outcome would be a loss for the Celtics.
+
+\newpage
+# Historical vs Real Time Statistics
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+oct18 <- read.csv('Oct. 18 Home L 108-100.csv')
+oct26 <- read.csv('Oct. 26 Away W 96-89.csv')
+dec4 <- read.csv('Dec. 4 Home W 100-111.csv')
+apr3 <- read.csv('Apr. 3 Away L 102-106.csv')
+apr15 <- read.csv('Apr. 15 Home W 107-113 Playoff1.csv')
+apr17 <- read.csv('Apr. 17 Home W 106-120 Playoff2.csv')
+apr20 <- read.csv('Apr. 20 Away L 92-116 Playoff3.csv')
+apr22 <- read.csv('Apr. 22 Away L 102-104 Playoff4.csv')
+apr24 <- read.csv('Apr. 24 Home W 87-92 Playoff5.csv')
+apr26 <- read.csv('Apr. 26 Away L 86-92 Playoff6.csv')
+```
+
+In this section, we will look at the averages of the "Four Factors",Field Goal Percentages, 3 Pointer Percentages, Free Throw Percentages, Turnovers, and Rebounds, in the past Celtics vs Bucks games, and how that average compared to the real time data of game 6, to see if the Celtics have been exceeding their average or below it. For each factor, we plot the average line representing historical data, and the real time data of game 6.
+
+## Field Goals
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getFieldGoals <- function(date) {
+  date[length(date$PLAYER), 5]
+}
+
+fg1 <- getFieldGoals(oct18)
+fg2 <- getFieldGoals(oct26)
+fg3 <- getFieldGoals(dec4)
+fg4 <- getFieldGoals(apr3)
+fg5 <- getFieldGoals(apr15)
+fg6 <- getFieldGoals(apr17)
+fg7 <- getFieldGoals(apr20)
+fg8 <- getFieldGoals(apr22)
+fg9 <- getFieldGoals(apr24)
+FG_average <- mean(c(fg1, fg2, fg3, fg4, fg5, fg6, fg7, fg8, fg9))
+
+ggplot(game6, aes(game6$MIN, y = value)) + 
+  geom_line(aes(y = game6$FG., col = "Real Time")) + 
+  geom_line(aes(y = FG_average, col = "Historical")) +
+  labs(title = "Field Goal Comparison",
+       y = "Field Goal %",
+       x = "Minutes")
+```
+
+We see that the field goal percentage during the game was only above average in the first quarter into the 2nd quarter, which explains the previous plot where the Celtics were in the lead at the same time. It quickly declined and continued to stay below the average of the previous games. During the game, one can see that since the field goal percentages continued to fall below the average, we can predict that the Celtics will lose the game since they aren't shooting field goals as well as they have previously.
+
+## 3 Pointers
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+get3Pointers <- function(date) {
+  date[length(date$PLAYER), 8]
+}
+
+p1 <- get3Pointers(oct18)
+p2 <- get3Pointers(oct26)
+p3 <- get3Pointers(dec4)
+p4 <- get3Pointers(apr3)
+p5 <- get3Pointers(apr15)
+p6 <- get3Pointers(apr17)
+p7 <- get3Pointers(apr20)
+p8 <- get3Pointers(apr22)
+p9 <- get3Pointers(apr24)
+P_average <- mean(c(p1, p2, p3, p4, p5, p6, p7, p8, p9))
+
+ggplot(game6, aes(game6$MIN, y = value)) + 
+  geom_line(aes(y = game6$X3P., col = "Real Time")) + 
+  geom_line(aes(y = P_average, col = "Historical")) +
+  labs(title = "3 Pointer Comparison",
+       y = "3 Pointer %",
+       x = "Minutes")
+```
+
+We, again, see that the only times the 3 Pointer percetages were above the average was when the Celtics were in the lead. Otherwise, throughout the game, the percentage fell below average, although it didn't fall too far below the line. Since the 3 point percentages fell mostly below the average percentage of the previous games, it is more likely that the Celtics are not shooting as well, which will lead to a lower score.
+
+## Free Throws
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getFreeThrows <- function(date) {
+  date[length(date$PLAYER), 11]
+}
+
+ft1 <- getFreeThrows(oct18)
+ft2 <- getFreeThrows(oct26)
+ft3 <- getFreeThrows(dec4)
+ft4 <- getFreeThrows(apr3)
+ft5 <- getFreeThrows(apr15)
+ft6 <- getFreeThrows(apr17)
+ft7 <- getFreeThrows(apr20)
+ft8 <- getFreeThrows(apr22)
+ft9 <- getFreeThrows(apr24)
+FT_average <- mean(c(ft1, ft2, ft3, ft4, ft5, ft6, ft7, ft8, ft9))
+
+ggplot(game6, aes(game6$MIN, y = value)) + 
+  geom_line(aes(y = game6$FT., col = "Real Time")) + 
+  geom_line(aes(y = FT_average, col = "Historical")) +
+  labs(title = "Free Throw Comparison",
+       y = "Free Throw %",
+       x = "Minutes")
+```
+
+Throughout the game, the free throw percentage was mostly always above the average. Free throw percentages are generally high, and are not as important as Field Goals or 3 Pointers, since they only count as 1 point and don't occur as often as Field Goals or 3 Pointers. It isn't as important as the other factors in basketball success. 
+
+## Rebounds
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getRebound <- function(date) {
+  date[length(date$PLAYER), 14]
+}
+
+R1 <- getRebound(oct18)
+R2 <- getRebound(oct26)
+R3 <- getRebound(dec4)
+R4 <- getRebound(apr3)
+R5 <- getRebound(apr15)
+R6 <- getRebound(apr17)
+R7 <- getRebound(apr20)
+R8 <- getRebound(apr22)
+R9 <- getRebound(apr24)
+R10 <- getRebound(apr26)
+
+barplot(c(R1, R2, R3, R4, R5, R6, R7, R8, R9, R10),
+        names.arg = c("oct18", "oct26", "dec4", "apr3", "apr15", "apr17", "apr20", "apr22", "apr24", "apr26"),
+        main = "Rebounds Historical vs Real",
+        xlab = "Date", cex.names = 0.7,
+        ylab = "Rebounds",
+        col = "skyblue1")
+```
+
+The barplot shows the number of rebounds in all previous games, as well as Game 6 which was on April 26. We see that the number of rebounds for the present game was close to the previous dates, but it is still lower than most of the other games, which contributes to the loss.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(game6, aes(game6$MIN, y = value)) + 
+  geom_smooth(aes(y = game6$REB)) + 
+  labs(title = "Rebounds",
+       y = "Rebounds",
+       x = "Minutes")
+```
+
+The number of rebounds also increased slowly throughout the game, as shown in the second graph.
+
+## Turnovers
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getTurnover <- function(date) {
+  date[length(date$PLAYER), 16]
+}
+
+T1 <- getTurnover(oct18)
+T2 <- getTurnover(oct26)
+T3 <- getTurnover(dec4)
+T4 <- getTurnover(apr3)
+T5 <- getTurnover(apr15)
+T6 <- getTurnover(apr17)
+T7 <- getTurnover(apr20)
+T8 <- getTurnover(apr22)
+T9 <- getTurnover(apr24)
+T10 <- getTurnover(apr26)
+
+barplot(c(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10),
+        names.arg = c("oct18", "oct26", "dec4", "apr3", "apr15", "apr17", "apr20", "apr22", "apr24", "apr26"),
+        main = "Turnovers Historical vs Real",
+        xlab = "Date", cex.names = .7,
+        ylab = "Turnovers",
+        col = "royalblue1")
+```
+
+The barplot shows the number of turnovers in the present game on April 26, and the number of turnovers in the previous games. It is seen that the number of turnovers is actually lower than most of those from previous games, besides two days (April 17 and April 22).
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ggplot(game6, aes(game6$MIN, y = value)) + 
+  geom_smooth(aes(y = game6$TOV)) + 
+  labs(title = "Turnovers",
+       y = "Turnovers",
+       x = "Minutes")
+```
+
+The number of turnovers also had a steady growth in the second graph.
+
+### Overall of Four Factors
+It is seen that the four factors (besides free throws) were below average throughout most of the entirety of the game. This all contributes to a lower score and an unwell played game, so it was straightforward to predict that the Celtics would lose the game, seeing that they weren't playing to the best of their ability and reaching their averages. 
+
+\newpage
+# Player Statistics: Historical vs Real Time
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+al <- read.csv("Al Horford Real Time.csv")
+jb <- read.csv("Jaylen Brown Real Time.csv")
+mm <- read.csv("Marcus Morris Real Time.csv")
+ms <- read.csv("Marcus Smart Real Time.csv")
+tr <- read.csv("Terry Rozier Real Time.csv")
+jt <- read.csv("Jayson Tatum Real Time.csv")
+```
+In this section, we look into key players in the regular starting lineup of each game. As we mentioned previously, Kyrie Irving came into the Celtics to uphold the team. He was the star of the Celtics rebuild. Kyrie put up many points and great statistics in the games he played this season. Unfortunately, he had a knee injury and had to undergo surgery, meaning he would miss the remainder of the games which included all of the playoffs. This means that he missed the game that we are analyzing right now. What does this mean? Would Kyrie really have an affect on the rest of the playoffs? Or would the other players be able to reach these expectations? The key players we will be analyzing are Jaylen Brown, Jayson Tatum, Al Horford, Marcus Smart, Marcus Morris, Terry Rozier, and of course, Kyrie Irving. Similarly to the previous section, we will be analyzing each player's averages in shooting in previous games vs the real time game. 
+
+## Jaylen Brown
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getjb <- function(date, column){
+  index <- date$PLAYER %>% `==` ("Jaylen Brown") %>% which()
+  date[index, column]
+}
+
+# Field Goals
+jbfg1 <- getjb(oct18, 5)
+jbfg2 <- getjb(oct26, 5)
+jbfg3 <- getjb(dec4, 5)
+jbfg4 <- getjb(apr3, 5)
+jbfg5 <- getjb(apr15, 5)
+jbfg6 <- getjb(apr17, 5)
+jbfg7 <- getjb(apr20, 5)
+jbfg8 <- getjb(apr22, 5)
+jbfg9 <- getjb(apr24, 5)
+
+jbfg_average <- mean(c(jbfg1, jbfg2, jbfg3, jbfg4, jbfg5, jbfg6, jbfg7, jbfg8, jbfg9), na.rm = TRUE)
+
+ggplot(jb, aes(jb$MIN, y = value)) + 
+  geom_line(aes(y = jb$FG., col = "Real Time")) + 
+  geom_line(aes(y = jbfg_average, col = "Historical")) +
+  labs(title = "Jaylen Brown Field Goals Comparison",
+       y = "Field Goal %",
+       x = "Minutes")
+```
+
+Jaylen Brown generally has a high average field goal percentage in his previous games against the Bucks. While looking at the real time data, we see that his field goal percentage throughout the game was a lot lower than his average. He was not playing as well in this game as previous games, which we may predict contribute to the end result of the overall game: a loss. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+jbp1 <- getjb(oct18, 8)
+jbp2 <- getjb(oct26, 8)
+jbp3 <- getjb(dec4, 8)
+jbp4 <- getjb(apr3, 8)
+jbp5 <- getjb(apr15, 8)
+jbp6 <- getjb(apr17, 8)
+jbp7 <- getjb(apr20, 8)
+jbp8 <- getjb(apr22, 8)
+jbp9 <- getjb(apr24, 8)
+
+jbp_average <- mean(c(jbp1, jbp2, jbp3, jbp4, jbp5, jbp6, jbp7, jbp8, jbp9), na.rm = TRUE)
+
+ggplot(jb, aes(jb$MIN, y = value)) + 
+  geom_line(aes(y = jb$X3P., col = "Real Time")) + 
+  geom_line(aes(y = jbp_average, col = "Historical")) +
+  labs(title = "Jaylen Brown 3 Pointers Comparison",
+       y = "3 Point %",
+       x = "Minutes")
+```
+
+He did not make any 3 pointers for the first half of the game and way into the 3rd quarter. His average is pretty high, but during game 6, Jaylen Brown's 3 pointers fell short and below average.
+
+With the below average field goal and 3 pointer percentages, we see that he did not put up as many points as he usually would, which would significantly contribute to the loss of the game.
+
+## Jayson Tatum
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getjt <- function(date, column){
+  index <- date$PLAYER %>% `==` ("Jayson Tatum") %>% which()
+  date[index, column]
+}
+
+# Field Goals
+jtfg1 <- getjt(oct18, 5)
+jtfg2 <- getjt(oct26, 5)
+jtfg3 <- getjt(dec4, 5)
+jtfg4 <- getjt(apr3, 5)
+jtfg5 <- getjt(apr15, 5)
+jtfg6 <- getjt(apr17, 5)
+jtfg7 <- getjt(apr20, 5)
+jtfg8 <- getjt(apr22, 5)
+jtfg9 <- getjt(apr24, 5)
+
+jtfg_average <- mean(c(jtfg1, jtfg2, jtfg3, jtfg4, jtfg5, jtfg6, jtfg7, jtfg8, jtfg9), na.rm = TRUE)
+
+ggplot(jt, aes(jt$MIN, y = value)) + 
+  geom_line(aes(y = jt$FG., col = "Real Time")) + 
+  geom_line(aes(y = jtfg_average, col = "Historical")) +
+  labs(title = "Jayson Tatum Field Goals Comparison",
+       y = "Field Goal %",
+       x = "Minutes")
+```
+
+Jayson Tatum's field goal percentage throughout the game was only above average during the time the Celtics were in the lead. His contribution fell short though because he ended up being below his average for most of the remainder of the game, which would lead to the loss.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# 3 Pointers
+jtp1 <- getjt(oct18, 8)
+jtp2 <- getjt(oct26, 8)
+jtp3 <- getjt(dec4, 8)
+jtp4 <- getjt(apr3, 8)
+jtp5 <- getjt(apr15, 8)
+jtp6 <- getjt(apr17, 8)
+jtp7 <- getjt(apr20, 8)
+jtp8 <- getjt(apr22, 8)
+jtp9 <- getjt(apr24, 8)
+
+jtp_average <- mean(c(jtp1, jtp2, jtp3, jtp4, jtp5, jtp6, jtp7, jtp8, jtp9), na.rm = TRUE)
+
+ggplot(jt, aes(jt$MIN, y = value)) + 
+  geom_line(aes(y = jt$X3P., col = "Real Time")) + 
+  geom_line(aes(y = jtp_average, col = "Historical")) +
+  labs(title = "Jayson Tatum 3 Pointers Comparison",
+       y = "3 Point %",
+       x = "Minutes")
+```
+
+He put up less 3 pointer attempts in this game, seeing that he didn't make a shot until nearly halftime, and did not make any more 3 pointers until the end, which would not help with the significant point difference that there already was for the Celtics and the Bucks. On average, Jayson Tatum would have a higher 3 point percentage with more attempts.
+
+## Al Horford
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getal <- function(date, column){
+  index <- date$PLAYER %>% `==` ("Al Horford") %>% which()
+  date[index, column]
+}
+
+# Field Goals
+alfg1 <- getal(oct18, 5)
+alfg2 <- getal(oct26, 5)
+alfg3 <- getal(dec4, 5)
+alfg4 <- getal(apr3, 5)
+alfg5 <- getal(apr15, 5)
+alfg6 <- getal(apr17, 5)
+alfg7 <- getal(apr20, 5)
+alfg8 <- getal(apr22, 5)
+alfg9 <- getal(apr24, 5)
+
+alfg_average <- mean(c(alfg1, alfg2, alfg3, alfg4, alfg5, alfg6, alfg7, alfg8, alfg9), na.rm = TRUE)
+
+ggplot(al, aes(al$MIN, y = value)) + 
+  geom_line(aes(y = al$FG., col = "Real Time")) + 
+  geom_line(aes(y = alfg_average, col = "Historical")) +
+  labs(title = "Al Horford Field Goals Comparison",
+       y = "Field Goal %",
+       x = "Minutes")
+```
+
+Al Horford typically, on average, has a high field goal percentage. His average is over 60%, but in game 6, we see that he doesn't come close to his average throughout the entirety of the game. His highest in the game was about 50%, so we see that he did not contribute much to the score throughout the game.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# 3 Pointers
+alp1 <- getal(oct18, 8)
+alp2 <- getal(oct26, 8)
+alp3 <- getal(dec4, 8)
+alp4 <- getal(apr3, 8)
+alp5 <- getal(apr15, 8)
+alp6 <- getal(apr17, 8)
+alp7 <- getal(apr20, 8)
+alp8 <- getal(apr22, 8)
+alp9 <- getal(apr24, 8)
+
+alp_average <- mean(c(alp1, alp2, alp3, alp4, alp5, alp6, alp7, alp8, alp9), na.rm = TRUE)
+
+ggplot(al, aes(al$MIN, y = value)) + 
+  geom_line(aes(y = al$X3P., col = "Real Time")) + 
+  geom_line(aes(y = alp_average, col = "Historical")) +
+  labs(title = "Al Horford 3 Pointers Comparison",
+       y = "3 Point %",
+       x = "Minutes")
+```
+
+He also generally has a high 3 pointer percentage, with over 50%. Again, he did not go above his average in this game, and barely made any 3 pointers, as can be seen in the constant lines where he did not attempt to shoot any 3s. 
+
+## Marcus Smart
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getms <- function(date, column){
+  index <- date$PLAYER %>% `==` ("Marcus Smart") %>% which()
+  date[index, column]
+}
+
+# Field Goals
+msfg1 <- getms(oct18, 5)
+msfg2 <- getms(oct26, 5)
+msfg3 <- getms(dec4, 5)
+msfg4 <- getms(apr3, 5)
+msfg5 <- getms(apr15, 5)
+msfg6 <- getms(apr17, 5)
+msfg7 <- getms(apr20, 5)
+msfg8 <- getms(apr22, 5)
+msfg9 <- getms(apr24, 5)
+
+msfg_average <- mean(c(msfg1, msfg2, msfg3, msfg4, msfg5, msfg6, msfg7, msfg8, msfg9), na.rm = TRUE)
+
+ggplot(ms, aes(ms$MIN, y = value)) + 
+  geom_line(aes(y = ms$FG., col = "Real Time")) + 
+  geom_line(aes(y = msfg_average, col = "Historical")) +
+  labs(title = "Marcus Smart Field Goals Comparison",
+       y = "Field Goal %",
+       x = "Minutes")
+```
+
+Marcus Smart is not a very strong shooter in general. He only has barely 20% for average field goal percentages. During game 6, we see that his percentages did not change much. He did go above average towards second half, but with less attempts at a field goal. So with less attempts, there was not much of a contribution to the score.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# 3 Pointers
+msp1 <- getms(oct18, 8)
+msp2 <- getms(oct26, 8)
+msp3 <- getms(dec4, 8)
+msp4 <- getms(apr3, 8)
+msp5 <- getms(apr15, 8)
+msp6 <- getms(apr17, 8)
+msp7 <- getms(apr20, 8)
+msp8 <- getms(apr22, 8)
+msp9 <- getms(apr24, 8)
+
+msp_average <- mean(c(msp1, msp2, msp3, msp4, msp5, msp6, msp7, msp8, msp9), na.rm = TRUE)
+
+ggplot(ms, aes(ms$MIN, y = value)) + 
+  geom_line(aes(y = ms$X3P., col = "Real Time")) + 
+  geom_line(aes(y = msp_average, col = "Historical")) +
+  labs(title = "Marcus Smart 3 Pointers Comparison",
+       y = "3 Point %",
+       x = "Minutes")
+```
+
+He is also not a strong 3 point shooter. On average, he is about 18% for 3 pointers, but in this game, he did not make any shoots. This is significant to the score, because he did not contribute any 3 points throughout the game.
+
+## Terry Rozier
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+gettr <- function(date, column){
+  index <- date$PLAYER %>% `==` ("Terry Rozier") %>% which()
+  date[index, column]
+}
+
+# Field Goals
+trfg1 <- gettr(oct18, 5)
+trfg2 <- gettr(oct26, 5)
+trfg3 <- gettr(dec4, 5)
+trfg4 <- gettr(apr3, 5)
+trfg5 <- gettr(apr15, 5)
+trfg6 <- gettr(apr17, 5)
+trfg7 <- gettr(apr20, 5)
+trfg8 <- gettr(apr22, 5)
+trfg9 <- gettr(apr24, 5)
+
+trfg_average <- mean(c(trfg1, trfg2, trfg3, trfg4, trfg5, trfg6, trfg7, trfg8, trfg9), na.rm = TRUE)
+
+ggplot(tr, aes(tr$MIN, y = value)) + 
+  geom_line(aes(y = tr$FG., col = "Real Time")) + 
+  geom_line(aes(y = trfg_average, col = "Historical")) +
+  labs(title = "Terry Rozier Field Goals Comparison",
+       y = "Field Goal %",
+       x = "Minutes")
+```
+
+Terry Rozier, unlike the previous players, did above his average throughout the game until the last quarter. He was always around 70% for field goal percentages. Towards the last quarter, he fell below his average, which contributed to the Celtics not being able to bring up their score near the end and lose the game.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# 3 Pointers
+trp1 <- gettr(oct18, 8)
+trp2 <- gettr(oct26, 8)
+trp3 <- gettr(dec4, 8)
+trp4 <- gettr(apr3, 8)
+trp5 <- gettr(apr15, 8)
+trp6 <- gettr(apr17, 8)
+trp7 <- gettr(apr20, 8)
+trp8 <- gettr(apr22, 8)
+trp9 <- gettr(apr24, 8)
+
+trp_average <- mean(c(trp1, trp2, trp3, trp4, trp5, trp6, trp7, trp8, trp9), na.rm = TRUE)
+
+ggplot(tr, aes(tr$MIN, y = value)) + 
+  geom_line(aes(y = tr$X3P., col = "Real Time")) + 
+  geom_line(aes(y = trp_average, col = "Historical")) +
+  labs(title = "Terry Rozier 3 Pointers Comparison",
+       y = "3 Point %",
+       x = "Minutes")
+```
+
+He is a very strong 3 point shooter, as can be seen in game 6. He was above average the whole time, and started strong when the Celtics were in the lead. But, his 3 point percentage declined throughout the game, which led to less points being contributed to the score, and the Celtics losing.
+
+## Marcus Morris
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getmm <- function(date, column){
+  index <- date$PLAYER %>% `==` ("Marcus Morris") %>% which()
+  date[index, column]
+}
+
+# Field Goals
+mmfg1 <- getmm(oct18, 5)
+mmfg2 <- getmm(oct26, 5)
+mmfg3 <- getmm(dec4, 5)
+mmfg4 <- getmm(apr3, 5)
+mmfg5 <- getmm(apr15, 5)
+mmfg6 <- getmm(apr17, 5)
+mmfg7 <- getmm(apr20, 5)
+mmfg8 <- getmm(apr22, 5)
+mmfg9 <- getmm(apr24, 5)
+
+mmfg_average <- mean(c(mmfg1, mmfg2, mmfg3, mmfg4, mmfg5, mmfg6, mmfg7, mmfg8, mmfg9), na.rm = TRUE)
+
+ggplot(mm, aes(mm$MIN, y = value)) + 
+  geom_line(aes(y = mm$FG., col = "Real Time")) + 
+  geom_line(aes(y = mmfg_average, col = "Historical")) +
+  labs(title = "Marcus Morris Field Goals Comparison",
+       y = "Field Goal %",
+       x = "Minutes")
+```
+
+Marcus Morris did not play in many of the previous games. But he did go above his average throughout game 6, but did not make as many attempts. With fewer attempts, there is not much contribution to the score.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# 3 Pointers
+mmp1 <- getmm(oct18, 8)
+mmp2 <- getmm(oct26, 8)
+mmp3 <- getmm(dec4, 8)
+mmp4 <- getmm(apr3, 8)
+mmp5 <- getmm(apr15, 8)
+mmp6 <- getmm(apr17, 8)
+mmp7 <- getmm(apr20, 8)
+mmp8 <- getmm(apr22, 8)
+mmp9 <- getmm(apr24, 8)
+
+mmp_average <- mean(c(mmp1, mmp2, mmp3, mmp4, mmp5, mmp6, mmp7, mmp8, mmp9), na.rm = TRUE)
+
+ggplot(mm, aes(mm$MIN, y = value)) + 
+  geom_line(aes(y = mm$X3P., col = "Real Time")) + 
+  geom_line(aes(y = mmp_average, col = "Historical")) +
+  labs(title = "Marcus Morris 3 Pointers Comparison",
+       y = "3 Point %",
+       x = "Minutes")
+```
+
+He generally has a decent 3 point shooting percentage, but did not make any shots until the very last quarter. He was well below his average even for this short period of time. With few attempts at 3 pointers and falling below average, there wasn't much contribution to the score, leading to a loss of the game.
+
+### Overall Game 6 Real Time Players
+We can say that the players did not bring their best talent to game 6. Most of the players, besides Terry Rozier, played below average throughout the entirety of the game. If only one player is shooting well, he cannot hold up the entire team. Again, we only looked at the field goals and 3 pointers, which contribute mostly to the scoring of the game. Throughout the game, we can predict that the Celtics will end up losing the game, since most of the players were not shooting well compared to their averages. 
+
+\newpage
+## Kyrie Irving
+As we said before, Kyrie Irving is a strong key player to the Celtics, but unfortunately got a knee injury and had to miss the playoffs, including game 6. In this section, we will see if him missing the game had a big difference on the game outcome, and if Kyrie Irving would've made the Celtics win or still lose this game. We will compare his average to the averages of the other players on the team who we have previously looked at.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+getk <- function(date, column){
+  index <- date$PLAYER %>% `==` ("Kyrie Irving") %>% which()
+  date[index, column]
+}
+
+# Field Goals
+kfg1 <- getk(oct18, 5)
+kfg2 <- getk(oct26, 5)
+kfg3 <- getk(dec4, 5)
+kfg4 <- getk(apr3, 5)
+kfg5 <- getk(apr15, 5)
+kfg6 <- getk(apr17, 5)
+kfg7 <- getk(apr20, 5)
+kfg8 <- getk(apr22, 5)
+kfg9 <- getk(apr24, 5)
+
+kfg_average <- mean(c(kfg1, kfg2, kfg3, kfg4, kfg5, kfg6, kfg7, kfg8, kfg9), na.rm = TRUE)
+
+barplot(c(jbfg_average, jtfg_average, alfg_average, msfg_average, mmfg_average, trfg_average, kfg_average),
+        names.arg = c("Jaylen Brown", "Jayson Tatum", "Al Horford", "Marcus Smart", "Marcus Morris", "Terry Rozier", "Kyrie Irving"),
+        main = "Kyrie Irving vs Others Field Goals",
+        xlab = "Player", cex.names = .7,
+        ylab = "Field Goal %",
+        col = "forestgreen")
+```
+
+This barplot shows the averages of field goal percentages for every player, including Kyrie Irving, for previous games against the Bucks. We see that Al Horford had the highest percentage, and then it was Jaylen Brown or Kyrie Irving next. One can say that if we switched out Marcus Morris for Kyrie Irving, who replaced him for the remaining games, there would've been a better chance at winning game 6. Kyrie Irving's average field goal percentage is nearly 50%, which would've helped contribute to a better score for the game result. He doesn't have such a big significance though because the other players such as Jayson Tatum, Jaylen Brown, and Terry Rozier nearly match up to Kyrie's average.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+# 3 Pointers
+kp1 <- getk(oct18, 8)
+kp2 <- getk(oct26, 8)
+kp3 <- getk(dec4, 8)
+kp4 <- getk(apr3, 8)
+kp5 <- getk(apr15, 8)
+kp6 <- getk(apr17, 8)
+kp7 <- getk(apr20, 8)
+kp8 <- getk(apr22, 8)
+kp9 <- getk(apr24, 8)
+
+kp_average <- mean(c(kp1, kp2, kp3, kp4, kp5, kp6, kp7, kp8, kp9), na.rm = TRUE)
+
+barplot(c(jbp_average, jtp_average, alp_average, msp_average, mmp_average, trp_average, kp_average),
+        names.arg = c("Jaylen Brown", "Jayson Tatum", "Al Horford", "Marcus Smart", "Marcus Morris", "Terry Rozier", "Kyrie Irving"),
+        main = "Kyrie Irving vs Others 3 Pointers",
+        xlab = "Player", cex.names = .7,
+        ylab = "3 Point %",
+        col = "aquamarine3")
+```
+
+This barplot shows the averages of 3 pointer percentages for each player, including Kyrie Irving again. We see that the two highest 3 point shooters here are Al Horford and Marcus Morris, and then next would be Kyrie Irving. Kyrie does have a pretty high average 3 point percentage, so replacing him with someone else would be difficult because there aren't many players with such high 3 point percentages. This may be a significant factor in whether or not the Celtics could've won the game with or without Kyrie. He would've contributed more points than other players, althought Jaylen Brown, Jayson Tatum, and Terry Rozier nearly matched the average of Kyrie Irving.
+
+\newpage
+# Twitter
+In this section, I use real time tweets during the game to see if there are any predictions or explanations of what is currently happening in the game. I use sentiment analysis (positive vs negative) to see what people are saying about the Celtics. I used the Twitter API to get tweets with search "celtics" or "#celtics", during halftime, end of 3rd quarter, and the final. I wanted to think that if there were more positive words than negative, it would mean the Celtics were doing well and others believe the Celtics may win. 
+
+## Halftime
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+h1 <- read_csv("halftime1.csv")
+
+h1 <- h1 %>% select(text) %>% unnest_tokens(word, text)
+
+# positive vs. negative overall
+bing_word_counts <- h1 %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+bing_word_counts %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment",
+       x = NULL) +
+  coord_flip()
+```
+
+During halftime, we can see that there were more positive words being used because the Celtics, although losing at this point, were close to having the lead. Many people believed the Celtics could've came back for the second half to win the game. The most commonly used word was "win" and "lead" on the positive side, with many people believing the Celtics would win the game. There were less negative words being used at this point, giving us the belief that the Celtics did have a chance to come back, which wouldn't have been hard to do.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+h1 %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("springgreen3", "aquamarine2"),
+                   max.words = 100)
+```
+
+Here, we see the used positive and negative words in tweets. We can see that the negative words were relative to the Celtics losing their lead against the Bucks. There are a few swear words that have been used in tweets, probably from those who believed the Celtics would hold their lead, and now afraid they may lose the game, especially since the Celtics would've closed out the first playoffs round with a win. For positive words, we see "win", "lead", "better", "proud", etc, which may relate to the Celtics having the lead before and being able to come back for the second half. At this point, it is hard to tell if the Celtics would win or not, because they had a good chance of coming back.
+
+## 3rd Quarter
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+q <- read_csv("3rdquarter1.csv")
+
+q <- q %>% select(text) %>% unnest_tokens(word, text)
+
+# positive vs. negative overall
+bing_word_counts <- q %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+bing_word_counts %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment",
+       x = NULL) +
+  coord_flip()
+```
+
+At this point, there were still more positive words that contributed to the sentiment, although the Celtics were still losing. At the same time, we cannot be sure if these words may have been used towards the Bucks, but assuming that we were searching up tweets relative to the Celtics, we cannot tell. There were more negative contributions this time around compared to the tweets during halftime, though.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+q %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("springgreen3", "aquamarine3"),
+                   max.words = 100)
+```
+
+In this word cloud, we see that there were more different negative words than during halftime. The most contributed negative word was "twists" which may be relative to the fact that the Celtics are losing more than before, especially after a lead. There are more negative words like "trash", "miss", "inability", "frustrating", etc, which shows how the game has changed since halftime. At halftime, there was still a chance for the Celtics to come back, but at this point, it was pretty clear that the Celtics have taken a deeper fall and would be hard to win in the last quarter. 
+
+## Final
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+final <- read_csv("final1.csv")
+
+final <- final %>% select(text) %>% unnest_tokens(word, text)
+
+# positive vs. negative overall
+bing_word_counts <- final %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+bing_word_counts %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment",
+       x = NULL) +
+  coord_flip()
+```
+
+We can still see that there was more contribution of positive words, although the Celtics lost the game at this point, but there are less positive words than negative words. The negative words "lose" and "f*ck" contributed more, showing the loss of the Celtics. There are more contributed negative words to the sentiment. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+final %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("springgreen3", "aquamarine2"),
+                   max.words = 100)
+```
+
+In the word cloud, we see that there are significantly more negative words at this point than positive words. There are many more swear words now, since the Celtics lost. The positive words did not change from halftime. There are more negative words now like "disappoint", "pathetic", "inconsistent", "ashamed", etc, which shows that a lot of people had wanted the Celtics to win, but the loss was a disappointment to many, since they had a lead and could've closed out round 1 of the playoffs with this game.
+
+### Overall Sentiment Analysis of Tweets
+We see that there is a big difference in sentiment from halftime to the final. During halftime, there were more positive words and contribution to sentiment, seeing that there was a good chance the Celtics would've come back from their shortage of points. Heading to the 3rd quarter tweets, we see that there were more negative words than positive since there was only one quarter left for the Celtics to possibly make a come back, though it was not likely. In the final, there were a lot more negative words since the Celtics ended up losing. We can see that the closer we get to the end of the game, the better the tweets explain and predict the outcome of the game.
+
+\newpage
+# Conclusion
+It is easier to analyze the real time data when we are heading closer towards the end of the game. This is obvious, because towards the end, there is a clearer idea of how many points one time is losing to the other team, and how much time is left in the game. Throughout the game, I was able to predict that in the 1st quarter, the Celtics had a good chance of winning game 6 because we were putting up a lot of points and were in a good lead. In the 2nd quarter, although there were less points, there still could've been a chance to bring up the score. In the 3rd and 4th quarter, it was clear that the game would not end well. The Celtics were playing an away game, not playing above average for shooting, turnovers, and rebounds, and the players themselves were not playing well. The lineup could've been better with Kyrie Irving, although one player cannot hold the whole team up, like how Terry Rozier could not give the team a win while his other teammates were playing below average. The tweets gave a clear idea of how the Celtics were playing in the 2nd half of the game. Being able to analyze every 2 minutes of the game and comparing averages and tweets, we see that it was clear the Celtics would lose game 6.
